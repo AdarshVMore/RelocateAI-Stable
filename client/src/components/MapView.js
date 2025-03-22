@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import '../styles/components/MapView.css';
 
 const MapView = ({ markers = [], center, zoom = 12, radius = null }) => {
@@ -6,6 +6,132 @@ const MapView = ({ markers = [], center, zoom = 12, radius = null }) => {
   const mapInstance = useRef(null);
   const mapMarkers = useRef([]);
   const radiusCircle = useRef(null);
+  // Missing refs for these variables
+  const geocoderRef = useRef(null);
+  const addressMarkerRef = useRef(null);
+  // Missing state for preferences
+  const [preferences, setPreferences] = useState({
+    commute: {
+      workAddress: '',
+      travelMode: 'DRIVING',
+      coordinates: { lat: 0, lng: 0 }
+    }
+  });
+
+  console.log("api for map is", process.env.REACT_APP_GOOGLE_MAPS_API_KEY)
+
+  // Initialize Google Maps
+  useEffect(() => {
+    // Load Google Maps API script if not already loaded
+    if (!window.google) {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&libraries=places,geometry`;
+      script.async = true;
+      script.defer = true;
+      script.onload = initializeMap;
+      document.head.appendChild(script);
+    } else {
+      initializeMap();
+    }
+
+    return () => {
+      // Clean up
+      if (addressMarkerRef.current && typeof addressMarkerRef.current.setMap === 'function') {
+        addressMarkerRef.current.setMap(null);
+      }
+      
+      // There's a reference to commuteCircle in the cleanup function but it's not defined anywhere
+      // Removing references to commuteCircle as it's not defined elsewhere in the component
+      
+      // Clear all markers on component unmount
+      if (mapMarkers.current && mapMarkers.current.length > 0) {
+        mapMarkers.current.forEach(marker => {
+          if (marker && typeof marker.setMap === 'function') {
+            marker.setMap(null);
+          }
+        });
+      }
+      
+      // Clear radius circle
+      if (radiusCircle.current && typeof radiusCircle.current.setMap === 'function') {
+        radiusCircle.current.setMap(null);
+      }
+    };
+  }, []);
+  
+  // Initialize map
+  const initializeMap = () => {
+    if (!mapRef.current) return;
+
+    // Default to Bangalore, India
+    const defaultLocation = { lat: 12.9716, lng: 77.5946 };
+    
+    const map = new window.google.maps.Map(mapRef.current, {
+      center: defaultLocation,
+      zoom: 12,
+      mapTypeControl: true,
+      streetViewControl: false,
+      fullscreenControl: true
+    });
+
+    mapInstance.current = map;
+    geocoderRef.current = new window.google.maps.Geocoder();
+  };
+
+  // Update map when address or commute preferences change
+  useEffect(() => {
+    if (!mapInstance.current || !geocoderRef.current) return;
+
+    const { workAddress, travelMode } = preferences.commute;
+    
+    if (workAddress && workAddress.trim()) {
+      geocodeAddress(workAddress);
+    }
+  }, [preferences.commute.workAddress, preferences.commute.travelMode]);
+
+  // Geocode address and update map
+  const geocodeAddress = (address) => {
+    if (!geocoderRef.current) return;
+
+    geocoderRef.current.geocode({ address }, (results, status) => {
+      if (status === 'OK' && results[0]) {
+        const location = results[0].geometry.location;
+        
+        // Update preferences with coordinates
+        setPreferences(prev => ({
+          ...prev,
+          commute: {
+            ...prev.commute,
+            coordinates: {
+              lat: location.lat(),
+              lng: location.lng()
+            }
+          }
+        }));
+
+        // Update map center
+        mapInstance.current.setCenter(location);
+        
+        // Update marker
+        if (addressMarkerRef.current) {
+          addressMarkerRef.current.setMap(null);
+        }
+        
+        const marker = new window.google.maps.Marker({
+          map: mapInstance.current,
+          position: location,
+          title: address,
+          animation: window.google.maps.Animation.DROP
+        });
+        
+        addressMarkerRef.current = marker;
+        
+        // updateCommuteCircle is called but not defined
+        // Commenting out this call since the function doesn't exist in this component
+        // updateCommuteCircle(location);
+      }
+    });
+  };
 
   useEffect(() => {
     console.log('MapView: Rendering with markers:', markers);
@@ -220,4 +346,4 @@ const MapView = ({ markers = [], center, zoom = 12, radius = null }) => {
   );
 };
 
-export default MapView; 
+export default MapView;

@@ -29,7 +29,7 @@ const NeighborhoodCard = ({ neighborhood, userCategory }) => {
       </div>
       
       <div className="neighborhood-overview">
-        <div className="neighborhood-rent">{neighborhood.averageRent}</div>
+        {/* <div className="neighborhood-rent">{neighborhood.averageRent}</div> */}
         <div className="neighborhood-scores">
           <div className="score-item">
             <div className="score-label">Safety</div>

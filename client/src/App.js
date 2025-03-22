@@ -9,6 +9,7 @@ import NeighborhoodFinder from './pages/NeighborhoodFinder';
 import PlaceRecommender from './pages/PlaceRecommender';
 import RelocationAssistant from './pages/RelocationAssistant';
 import SocialConnector from './pages/SocialConnector';
+import Login from './pages/Login';  
 import './styles/global.css';
 import './styles/App.css';
 
@@ -21,10 +22,11 @@ function App() {
           <main className="main-content">
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/neighborhoods" element={<NeighborhoodFinder />} />
+              <Route path="/place-recommender" element={<NeighborhoodFinder />} />
               <Route path="/places" element={<PlaceRecommender />} />
-              <Route path="/assistant" element={<RelocationAssistant />} />
-              <Route path="/social" element={<SocialConnector />} />
+              <Route path="/relocation-assistant" element={<RelocationAssistant />} />
+              <Route path="/social-connector" element={<SocialConnector />} />
+              <Route path="/login" element={<Login />} />
             </Routes>
           </main>
           <FloatingChatButton />

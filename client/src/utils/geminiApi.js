@@ -26,6 +26,17 @@ try {
   console.error("Error initializing Gemini API:", error.message);
 }
 
+// Initialize default model
+let defaultModel;
+try {
+  if (genAI) {
+    defaultModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    console.log("Gemini API: Default model initialized");
+  }
+} catch (error) {
+  console.error("Error initializing default model:", error.message);
+}
+
 /**
  * Get an available Gemini model
  * @returns {string} The model name
@@ -350,151 +361,148 @@ const createFallbackResponse = (timelineData, frequentLocations = []) => {
 };
 
 /**
- * Generate social events in Pune using Gemini API
- * @returns {Promise<Array>} Array of social events
+ * Generates social events for a specific location using Gemini API
+ * @param {string} city - The city for which to generate events
+ * @param {Object} userData - Optional user data for personalization
+ * @returns {Promise<Array>} - Array of generated events
  */
-export const generateSocialEvents = async () => {
+export const generateSocialEvents = async (city = 'Pune') => {
   try {
-    console.log("Generating social events using Gemini API...");
+    console.log(`Generating social events for city: ${city}`);
     
+    if (!genAI) {
+      console.error('Gemini API not initialized');
+      throw new Error('Gemini API not initialized');
+    }
+
     // Get the model
     const modelName = await getAvailableModel();
     console.log("Using Gemini model:", modelName);
     
     const model = genAI.getGenerativeModel({ model: modelName });
 
-    // Create the prompt with detailed instructions
-    const prompt = `
-    Find me a list of upcoming social events happening in Pune, including live concerts, 
-    networking meetups, parties, cultural festivals, open mics, and tech gatherings.
-    Format the response strictly in JSON with the following structure:
-    {
-      "events": [
+    // Create a chat session
+    const chat = model.startChat({
+      generationConfig: {
+        temperature: 0.7,
+        topP: 0.8,
+        topK: 40,
+        maxOutputTokens: 8192,
+      },
+      safetySettings: [
         {
-          "name": "<Event Name>",
-          "date": "<Date in YYYY-MM-DD format>",
-          "location": "<Event Location>",
-          "category": "<Category: Concert, Meetup, Festival, etc.>",
-          "ticket_details": {
-            "price": "<Price or Free>",
-            "booking_link": "<URL for tickets>"
-          },
-          "official_source": "<Official Event Page URL>"
-        }
-      ]
-    }
-    
-    IMPORTANT: 
-    1. Include at least 10 diverse events across different categories
-    2. Use realistic venues in Pune
-    3. Use dates within the next 3 months
-    4. Provide realistic ticket prices in Indian Rupees (₹)
-    5. Respond ONLY with valid JSON. Do not include any explanatory text or markdown formatting.
-    `;
-
-    // Set generation config
-    const generationConfig = {
-      temperature: 0.7,
-      topP: 0.9,
-      topK: 40,
-      maxOutputTokens: 4096,
-    };
-
-    // Generate content
-    console.log("Sending request to Gemini API...");
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig,
+          category: 'HARM_CATEGORY_HARASSMENT',
+          threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+        },
+        {
+          category: 'HARM_CATEGORY_HATE_SPEECH',
+          threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+        },
+        {
+          category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+          threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+        },
+        {
+          category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+          threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+        },
+      ],
     });
 
-    const response = result.response;
-    console.log("Received response from Gemini API");
+    // System prompt for event generation
+    const systemPrompt = `You are a local event discovery assistant that provides detailed information about upcoming events in a specified location. Your task is to generate a comprehensive list of events based on the provided location.
+
+For the location "${city}", create a JSON array of 12-15 events covering the next 3 months. Each event should have the following structure:
+
+\`\`\`json
+{
+  "name": "Event Name",
+  "category": "Event Category",
+  "date": "YYYY-MM-DD",
+  "time": "HH:MM AM/PM",
+  "location": "Venue Name, ${city}",
+  "description": "A brief description of the event (2-3 sentences)",
+  "ticket_details": {
+    "price": "Free or cost range",
+    "booking_link": "https://example.com/tickets"
+  },
+  "official_source": "https://example.com/event" 
+}
+\`\`\`
+
+Important guidelines:
+1. Focus on realistic, believable events that could actually happen in ${city}
+2. Include a variety of event categories (concerts, workshops, festivals, meetups, food events, etc.)
+3. Use real venue names that exist in ${city} when possible
+4. Spread events across different dates within the next 3 months
+5. Vary the ticket prices from free events to premium events
+6. For booking_link and official_source, use realistic URLs (they can be fictional but should look real)
+7. Make sure each event has a unique name and description
+
+Output only valid JSON that can be parsed using JSON.parse().`;
+
+    // Send the system prompt
+    const result = await chat.sendMessage(systemPrompt);
+    const responseText = result.response.text();
+    
+    // Extract JSON from the response
+    const jsonMatch = responseText.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) {
+      console.error('Failed to parse events from Gemini response');
+      console.log('Response received:', responseText);
+      return [];
+    }
     
     try {
-      // Parse the JSON response
-      const jsonResponse = JSON.parse(response.text());
-      console.log("Successfully parsed JSON response:", jsonResponse);
-      
-      if (jsonResponse && jsonResponse.events && Array.isArray(jsonResponse.events)) {
-        return jsonResponse.events;
-      } else {
-        console.error("Invalid response format:", jsonResponse);
-        return createFallbackEvents();
-      }
+      const events = JSON.parse(jsonMatch[0]);
+      console.log(`Successfully parsed ${events.length} events`);
+      return events;
     } catch (parseError) {
-      console.error("Error parsing JSON response:", parseError);
-      console.log("Raw response:", response.text());
-      return createFallbackEvents();
+      console.error('Error parsing JSON from Gemini response:', parseError);
+      
+      // If we have a broken JSON, try some basic cleanup and retry
+      const cleanedJson = responseText
+        .replace(/```json/g, '')
+        .replace(/```/g, '')
+        .trim();
+      
+      try {
+        const events = JSON.parse(cleanedJson);
+        console.log(`Successfully parsed ${events.length} events after cleanup`);
+        return events;
+      } catch (secondError) {
+        console.error('Failed to parse JSON even after cleanup:', secondError);
+        
+        // Last resort: try to match individual event objects and build the array manually
+        const eventsArray = [];
+        const objectRegex = /\{[\s\S]*?\}/g;
+        const matches = responseText.match(objectRegex);
+        
+        if (matches) {
+          for (const match of matches) {
+            try {
+              const event = JSON.parse(match);
+              eventsArray.push(event);
+            } catch (e) {
+              // Skip invalid objects
+              console.warn('Skipping invalid event object');
+            }
+          }
+          
+          if (eventsArray.length > 0) {
+            console.log(`Recovered ${eventsArray.length} events from partial parsing`);
+            return eventsArray;
+          }
+        }
+        
+        // If all parsing attempts fail, return an empty array
+        return [];
+      }
     }
   } catch (error) {
-    console.error("Error generating social events:", error);
-    return createFallbackEvents();
+    console.error('Error generating social events:', error);
+    return [];
   }
-};
-
-/**
- * Create fallback events in case the API fails
- * @returns {Array} Array of fallback events
- */
-const createFallbackEvents = () => {
-  console.log("Creating fallback events...");
-  return [
-    {
-      "name": "Nucleya Live in Pune",
-      "date": "2024-07-27",
-      "location": "FC Road Social, Pune",
-      "category": "Concert",
-      "ticket_details": {
-        "price": "₹999 onwards",
-        "booking_link": "https://insider.in/nucleya-live-pune-jul27-2024/event"
-      },
-      "official_source": "https://insider.in/nucleya-live-pune-jul27-2024/event"
-    },
-    {
-      "name": "Pune Startups Networking Meetup",
-      "date": "2024-08-03",
-      "location": "The Daftar, Baner",
-      "category": "Meetup",
-      "ticket_details": {
-        "price": "₹499",
-        "booking_link": "https://www.meetup.com/pune-startups/events/"
-      },
-      "official_source": "https://www.meetup.com/pune-startups/events/"
-    },
-    {
-      "name": "Bollywood Night Party",
-      "date": "2024-07-20",
-      "location": "Penthouze Nightlife, Mundhwa",
-      "category": "Party",
-      "ticket_details": {
-        "price": "₹799 onwards",
-        "booking_link": "https://in.bookmyshow.com/events/bollywood-night/ET000000000000"
-      },
-      "official_source": "https://in.bookmyshow.com/events/bollywood-night/ET000000000000"
-    },
-    {
-      "name": "Pune Comedy Festival",
-      "date": "2024-08-10",
-      "location": "Multiple Venues, Pune",
-      "category": "Festival",
-      "ticket_details": {
-        "price": "₹599 onwards",
-        "booking_link": "https://insider.in/pune-comedy-festival-2024/event"
-      },
-      "official_source": "https://insider.in/pune-comedy-festival-2024/event"
-    },
-    {
-      "name": "Open Mic Night - Poetry & Storytelling",
-      "date": "2024-07-25",
-      "location": "The Place, Koregaon Park",
-      "category": "Open Mic",
-      "ticket_details": {
-        "price": "₹200",
-        "booking_link": "https://allevents.in/pune/open-mic-night-poetry-and-storytelling/80002801714089"
-      },
-      "official_source": "https://allevents.in/pune/open-mic-night-poetry-and-storytelling/80002801714089"
-    }
-  ];
 };
 
 /**
@@ -532,133 +540,62 @@ export const generatePlaceRecommendations = async (prompt) => {
     });
 
     const response = result.response;
-    console.log("Received response from Gemini API");
+  console.log("Received response from Gemini API");
+  
+  try {
+    // Get the text response
+    const responseText = response.text();
+    console.log("Raw response text:", responseText.substring(0, 200) + "...");
     
-    try {
-      // Get the text response
-      const responseText = response.text();
-      console.log("Raw response text:", responseText.substring(0, 200) + "...");
+    // Extract JSON from markdown code blocks if present
+    let jsonString = responseText;
+    
+    // Check if the response is wrapped in markdown code blocks
+    const jsonRegex = /```(?:json)?\s*([\s\S]*?)```/;
+    const match = responseText.match(jsonRegex);
+    
+    if (match && match[1]) {
+      // Extract the content between the code block markers
+      jsonString = match[1].trim();
+      console.log("Extracted JSON from markdown code block");
+    }
+    
+    // Parse the JSON response
+    const jsonResponse = JSON.parse(jsonString);
+    console.log("Successfully parsed JSON response for places");
+    
+    console.log(`Received ${jsonResponse.length} places from API`);
+    
+    // Validate and clean up the data
+    const validatedPlaces = jsonResponse.map((place, index) => {
+      // Ensure all required fields exist
+      return {
+        id: place.id || `place-${index + 1}`,
+        name: place.name || `Place ${index + 1}`,
+        category: place.category || 'other',
+        description: place.description || 'No description available',
+        address: place.address || 'No address available',
+        coordinates: place.coordinates || { lat: 0, lng: 0 },
+        priceLevel: typeof place.priceLevel === 'number' ? place.priceLevel : 1,
+        rating: typeof place.rating === 'number' ? place.rating : 4.0,
+        distance: typeof place.distance === 'number' ? place.distance : 1.0,
+        imageUrl: place.imageUrl || null,
+        website: place.website || '',
+        priorityRank: place.priorityRank || index + 1
+      };
+    });
+
+    console.log('Validated places are:', validatedPlaces);
+    
+    return validatedPlaces;
       
-      // Parse the JSON response
-      const jsonResponse = JSON.parse(responseText);
-      console.log("Successfully parsed JSON response for places");
-      
-      if (Array.isArray(jsonResponse)) {
-        console.log(`Received ${jsonResponse.length} places from API`);
-        
-        // Validate and clean up the data
-        const validatedPlaces = jsonResponse.map((place, index) => {
-          // Ensure all required fields exist
-          return {
-            id: place.id || `place-${index + 1}`,
-            name: place.name || `Place ${index + 1}`,
-            category: place.category || 'other',
-            description: place.description || 'No description available',
-            address: place.address || 'No address available',
-            coordinates: place.coordinates || { lat: 0, lng: 0 },
-            priceLevel: typeof place.priceLevel === 'number' ? place.priceLevel : 1,
-            rating: typeof place.rating === 'number' ? place.rating : 4.0,
-            distance: typeof place.distance === 'number' ? place.distance : 1.0,
-            imageUrl: place.imageUrl || null,
-            website: place.website || '',
-            priorityRank: place.priorityRank || index + 1
-          };
-        });
-        
-        return validatedPlaces;
-      } else {
-        console.error("Invalid response format for places - not an array:", typeof jsonResponse);
-        return createFallbackPlaces();
-      }
     } catch (parseError) {
       console.error("Error parsing JSON response for places:", parseError);
       console.log("Raw response:", response.text());
-      return createFallbackPlaces();
     }
   } catch (error) {
     console.error("Error generating place recommendations:", error);
-    return createFallbackPlaces();
   }
-};
-
-/**
- * Create fallback places in case the API fails
- * @returns {Array} Array of fallback places
- */
-const createFallbackPlaces = () => {
-  console.log("Creating fallback places...");
-  return [
-    {
-      "id": "place1",
-      "name": "Chai Point",
-      "category": "cafe",
-      "description": "Popular cafe chain known for its variety of chai and light snacks.",
-      "address": "123 FC Road, Pune, Maharashtra",
-      "coordinates": { "lat": 18.5204, "lng": 73.8567 },
-      "priceLevel": 1,
-      "rating": 4.3,
-      "distance": 0.5,
-      "imageUrl": "https://example.com/images/chai-point.jpg",
-      "website": "https://www.chaipoint.com",
-      "priorityRank": 1
-    },
-    {
-      "id": "place2",
-      "name": "Gold's Gym",
-      "category": "gym",
-      "description": "Well-equipped fitness center with modern facilities and trained instructors.",
-      "address": "456 Baner Road, Pune, Maharashtra",
-      "coordinates": { "lat": 18.5604, "lng": 73.7767 },
-      "priceLevel": 3,
-      "rating": 4.5,
-      "distance": 1.2,
-      "imageUrl": "https://example.com/images/golds-gym.jpg",
-      "website": "https://www.goldsgym.in",
-      "priorityRank": 2
-    },
-    {
-      "id": "place3",
-      "name": "Shaniwar Wada",
-      "category": "park",
-      "description": "Historic fortification and park in the city with beautiful gardens.",
-      "address": "Shaniwar Peth, Pune, Maharashtra",
-      "coordinates": { "lat": 18.5195, "lng": 73.8553 },
-      "priceLevel": 1,
-      "rating": 4.6,
-      "distance": 0.8,
-      "imageUrl": "https://example.com/images/shaniwar-wada.jpg",
-      "website": "https://www.punecorporation.org",
-      "priorityRank": 3
-    },
-    {
-      "id": "place4",
-      "name": "Phoenix Marketcity",
-      "category": "shopping_mall",
-      "description": "Large shopping mall with international brands, restaurants, and entertainment options.",
-      "address": "Viman Nagar, Pune, Maharashtra",
-      "coordinates": { "lat": 18.5623, "lng": 73.9173 },
-      "priceLevel": 3,
-      "rating": 4.4,
-      "distance": 2.5,
-      "imageUrl": "https://example.com/images/phoenix-mall.jpg",
-      "website": "https://www.phoenixmarketcity.com/pune",
-      "priorityRank": 4
-    },
-    {
-      "id": "place5",
-      "name": "Vaishali Restaurant",
-      "category": "restaurant",
-      "description": "Iconic South Indian restaurant known for its dosas and filter coffee.",
-      "address": "1218/1, FC Road, Pune, Maharashtra",
-      "coordinates": { "lat": 18.5182, "lng": 73.8367 },
-      "priceLevel": 2,
-      "rating": 4.7,
-      "distance": 0.7,
-      "imageUrl": "https://example.com/images/vaishali.jpg",
-      "website": "https://www.vaishalirestaurant.com",
-      "priorityRank": 5
-    }
-  ];
 };
 
 // Create a named export object

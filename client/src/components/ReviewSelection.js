@@ -162,7 +162,7 @@ const ReviewSelection = ({ preferences, recommendations, onConfirm, onBack }) =>
                 <div className="neighborhood-location">{neighborhood.city}, {neighborhood.state}</div>
               </div>
               <div className="neighborhood-details">
-                <div className="neighborhood-rent">{neighborhood.averageRent}</div>
+                {/* <div className="neighborhood-rent">{neighborhood.averageRent}</div> */}
                 <div className="neighborhood-scores">
                   <span className="score">
                     <i className="fas fa-shield-alt"></i> Safety: {neighborhood.safetyScore}/10

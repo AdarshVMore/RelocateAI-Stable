@@ -11,8 +11,8 @@ const Home = () => {
           <h1>Find Your Perfect Neighborhood</h1>
           <p>Your smart relocation assistant to help you find the perfect place to live based on your preferences and lifestyle.</p>
           <div className="hero-buttons">
-            <Link to="/neighborhoods" className="primary-btn">Find Neighborhoods</Link>
-            <Link to="/assistant" className="secondary-btn">Talk to Assistant</Link>
+            <Link to="/place-recommender" className="primary-btn">Find Neighborhoods</Link>
+            <Link to="/relocation-assistant" className="secondary-btn">Talk to Assistant</Link>
           </div>
         </div>
         <div className="hero-image">
@@ -28,28 +28,28 @@ const Home = () => {
             <div className="feature-icon">🏙️</div>
             <h3>Find Perfect Neighborhoods</h3>
             <p>Discover neighborhoods that match your budget, commute preferences, and lifestyle needs.</p>
-            <Link to="/neighborhoods" className="feature-link">Explore Neighborhoods</Link>
+            <Link to="/place-recommender" className="feature-link">Explore Neighborhoods</Link>
           </div>
           
           <div className="feature-card">
             <div className="feature-icon">🍽️</div>
             <h3>Discover Local Places</h3>
             <p>Get personalized recommendations for restaurants, gyms, shops, and more based on your preferences.</p>
-            <Link to="/places" className="feature-link">Find Places</Link>
+            <Link to="/place-recommender" className="feature-link">Find Places</Link>
           </div>
           
           <div className="feature-card">
             <div className="feature-icon">🤖</div>
             <h3>Relocation Assistant</h3>
             <p>Our AI assistant helps with everything from moving tips to local information.</p>
-            <Link to="/assistant" className="feature-link">Chat with Assistant</Link>
+            <Link to="/relocation-assistant" className="feature-link">Chat with Assistant</Link>
           </div>
           
           <div className="feature-card">
             <div className="feature-icon">👥</div>
             <h3>Connect Socially</h3>
-            <p>Find local groups, events, and communities that match your interests and hobbies.</p>
-            <Link to="/social" className="feature-link">Find Social Groups</Link>
+            <p>Find local events, gatherings, and social activities that match your interests and hobbies.</p>
+            <Link to="/social-connector" className="feature-link">Discover Events</Link>
           </div>
         </div>
       </section>

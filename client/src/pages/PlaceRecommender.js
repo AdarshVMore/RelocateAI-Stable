@@ -122,8 +122,36 @@ const PlaceRecommender = () => {
       'Chennai': { lat: 13.0827, lng: 80.2707 },
       'Hyderabad': { lat: 17.3850, lng: 78.4867 },
       'Kolkata': { lat: 22.5726, lng: 88.3639 },
-      'Jaipur': { lat: 26.9124, lng: 75.7873 }
+      'Jaipur': { lat: 26.9124, lng: 75.7873 },
+      'Ahmedabad': { lat: 23.0225, lng: 72.5714 },
+      'Surat': { lat: 21.1702, lng: 72.8311 },
+      'Lucknow': { lat: 26.8467, lng: 80.9462 },
+      'Kanpur': { lat: 26.4499, lng: 80.3319 },
+      'Nagpur': { lat: 21.1458, lng: 79.0882 },
+      'Indore': { lat: 22.7196, lng: 75.8577 },
+      'Bhopal': { lat: 23.2599, lng: 77.4126 },
+      'Patna': { lat: 25.5941, lng: 85.1376 },
+      'Ludhiana': { lat: 30.9010, lng: 75.8573 },
+      'Agra': { lat: 27.1767, lng: 78.0081 },
+      'Vadodara': { lat: 22.3072, lng: 73.1812 },
+      'Coimbatore': { lat: 11.0168, lng: 76.9558 },
+      'Kochi': { lat: 9.9312, lng: 76.2673 },
+      'Visakhapatnam': { lat: 17.6868, lng: 83.2185 },
+      'Mysore': { lat: 12.2958, lng: 76.6394 },
+      'Varanasi': { lat: 25.3176, lng: 82.9739 },
+      'Thiruvananthapuram': { lat: 8.5241, lng: 76.9366 },
+      'Ranchi': { lat: 23.3441, lng: 85.3096 },
+      'Raipur': { lat: 21.2514, lng: 81.6296 },
+      'Bhubaneswar': { lat: 20.2961, lng: 85.8245 },
+      'Guwahati': { lat: 26.1445, lng: 91.7362 },
+      'Indore': { lat: 22.7196, lng: 75.8577 },
+      'Jaipur': { lat: 26.9124, lng: 75.7873 },
+      'Kolkata': { lat: 22.5726, lng: 88.3639 },
+      'Lucknow': { lat: 26.8467, lng: 80.9462 },
+      'Mumbai': { lat: 19.0760, lng: 72.8777 },
+      
     };
+    
     return cityCoordinates[city] || cityCoordinates['New Delhi'];
   };
 
@@ -302,7 +330,7 @@ const PlaceRecommender = () => {
   const createPlaceRecommendationPrompt = (neighborhood, priorityTypes, filters) => {
     const neighborhoodInfo = `Neighborhood: ${neighborhood.name}, ${neighborhood.city}, ${neighborhood.state}`;
     const coordinates = `Coordinates: ${neighborhood.name}, ${neighborhood.name}`;
-    
+    console.log('Priority types:', priorityTypes, 'Filters:', filters, 'Neighborhood:', neighborhood);
     // Format priority types as a numbered list
     const priorityTypesList = priorityTypes.map((type, index) => 
       `${index + 1}. ${type}`
