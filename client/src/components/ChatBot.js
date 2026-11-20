@@ -90,7 +90,7 @@ const ChatBot = ({ isDialog = false }) => {
         
         // Get the model
         const model = genAI.getGenerativeModel({
-          model: "gemini-2.0-flash",
+          model: "gemini-2.5-flash",
           systemInstruction: `You are relocate.io's smart relocation assistant that helps users with their relocation needs. Your capabilities:
 
 1. Analyze user preferences (budget, commute time, lifestyle, must-haves) to provide personalized advice

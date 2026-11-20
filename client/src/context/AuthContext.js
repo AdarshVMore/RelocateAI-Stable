@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { auth, signInWithPopup, provider } from '../utils/firebase';
 import { API } from '../utils/api';
+import { API_BASE_URL } from '../utils/apiBase';
 
 export const AuthContext = createContext();
 
@@ -11,7 +12,7 @@ export const AuthProvider = ({ children }) => {
   // Function to check session status with the backend
   const checkSession = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/auth/session', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/session`, {
         method: 'GET',
         credentials: 'include', // Important for session cookies
       });
@@ -135,7 +136,7 @@ export const AuthProvider = ({ children }) => {
       await auth.signOut();
       
       // Clear session with backend
-      await fetch('http://localhost:3000/api/auth/logout', {
+      await fetch(`${API_BASE_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });

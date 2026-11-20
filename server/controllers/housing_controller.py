@@ -223,12 +223,7 @@ def get_available_gemini_model():
         
         # Try models in order of preference
         preferred_models = [
-            'gemini-1.5-flash',
-            'gemini-1.5-pro',
-            'gemini-pro',
-            'gemini-pro-vision',
-            'models/gemini-1.0-pro',
-            'models/gemini-pro'
+            'gemini-2.5-flash'
         ]
         
         for model_name in preferred_models:
@@ -243,12 +238,12 @@ def get_available_gemini_model():
             return model_names[0]
         
         # Default fallback
-        print("No models available, using default: gemini-1.5-flash")
-        return 'gemini-1.5-flash'
+        print("No models available, using default: gemini-2.5-flash")
+        return 'gemini-2.5-flash'
     except Exception as e:
         print(f"Error listing models: {e}")
-        print("Using default model: gemini-1.5-flash")
-        return 'gemini-1.5-flash'
+        print("Using default model: gemini-2.5-flash")
+        return 'gemini-2.5-flash'
 
 def recommend_housing():
     try:

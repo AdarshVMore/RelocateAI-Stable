@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { API } from "../utils/api";
 import "../styles/components/UserProfile.css";
+import { API_BASE_URL } from '../utils/apiBase';
 
 const UserProfile = () => {
   const [user, setUser] = useState(null);
@@ -10,7 +11,7 @@ const UserProfile = () => {
 
   // Fetch user details from Flask
   useEffect(() => {
-    fetch("http://127.0.0.1:3000/user", {
+    fetch(`${API_BASE_URL}/user`, {
       method: "GET",
       credentials: "include", // Ensures session data is sent
     })

@@ -1,6 +1,7 @@
 import firebase_admin
 from firebase_admin import credentials, auth, db
 import os
+import json
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -13,9 +14,10 @@ firebase_database_url = os.getenv('FIREBASE_DATABASE_URL', 'https://codebits3-de
 current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 cred_path = os.path.join(current_dir, "codebits3-firebase-adminsdk-fbsvc-d00982fcf5.json")
 
-# Load Firebase credentials
+# Load Firebase credentials (in production, the service account JSON comes from an env var)
 try:
-    cred = credentials.Certificate(cred_path)
+    cred_json = os.getenv('FIREBASE_CREDENTIALS_JSON')
+    cred = credentials.Certificate(json.loads(cred_json) if cred_json else cred_path)
     firebase_admin.initialize_app(cred, {
         'databaseURL': firebase_database_url
     })

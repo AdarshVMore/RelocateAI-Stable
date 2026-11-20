@@ -1,3 +1,5 @@
+import { API_BASE_URL } from './apiBase';
+
 /**
  * Environment configuration utility
  * This utility ensures consistent access to environment variables throughout the application
@@ -33,7 +35,7 @@ export const getEnvVariable = (key, defaultValue = null) => {
 
 // Common environment variables
 export const config = {
-  apiUrl: getEnvVariable('REACT_APP_API_URL', 'http://localhost:3000'),
+  apiUrl: API_BASE_URL,
   googleMapsApiKey: getEnvVariable('REACT_APP_GOOGLE_MAPS_API_KEY'),
   geminiApiKey: getEnvVariable('REACT_APP_GEMINI_API_KEY_NEW')
 };

@@ -7,3 +7,10 @@ client/.env.local
 client/.env.development.local
 client/.env.test.local
 client/.env.production.local
+
+# // vaanshika-6a813-firebase-adminsdk-fbsvc-68d35b8081
+__pycache__/
+*.pyc
+.DS_Store
+client/build
+server/.venv

@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: relocateai
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FIREBASE_CREDENTIALS_JSON
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_DATABASE_URL
+        sync: false
+      - key: GOOGLE_AI_KEY
+        sync: false
+      - key: GOOGLE_MAPS_KEY
+        sync: false
+      - key: REACT_APP_GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: REACT_APP_GEMINI_API_KEY_NEW
+        sync: false

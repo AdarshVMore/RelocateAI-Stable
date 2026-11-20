@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { API } from "../utils/api";
 import "../styles/pages/Profile.css";
+import { API_BASE_URL } from '../utils/apiBase';
 
 const Profile = ({ user, setUser }) => {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ const Profile = ({ user, setUser }) => {
 
   useEffect(() => {
     if (!user) {
-      fetch("http://127.0.0.1:3000/api/user", {  // ✅ Corrected API route
+      fetch(`${API_BASE_URL}/api/user`, {  // ✅ Corrected API route
         method: "GET",
         credentials: "include", // ✅ Ensures session cookies are sent
       })

@@ -30,7 +30,7 @@ try {
 let defaultModel;
 try {
   if (genAI) {
-    defaultModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    defaultModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     console.log("Gemini API: Default model initialized");
   }
 } catch (error) {
@@ -42,8 +42,8 @@ try {
  * @returns {string} The model name
  */
 export const getAvailableModel = async () => {
-  // Default to gemini-1.5-flash
-  return "gemini-1.5-flash";
+  // Default to gemini-2.5-flash
+  return "gemini-2.5-flash";
 };
 
 /**

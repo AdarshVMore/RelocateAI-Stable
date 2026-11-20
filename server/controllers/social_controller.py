@@ -13,7 +13,7 @@ genai.configure(api_key=GOOGLE_API_KEY)
 def fetch_social_events():
     """Fetches upcoming social events in Pune using Google Gemini."""
     try:
-        model = genai.GenerativeModel("gemini-2.0-flash")
+        model = genai.GenerativeModel("gemini-2.5-flash")
         prompt = (
             "Find me a list of upcoming social events happening in Pune, including live concerts, "
             "networking meetups, parties, cultural festivals, open mics, and tech gatherings. "

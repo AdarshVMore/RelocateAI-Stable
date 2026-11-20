@@ -1,0 +1,11 @@
+**/node_modules
+**/venv
+**/.venv
+**/__pycache__
+**/.env
+**/.env.*
+**/*firebase-adminsdk*.json
+**/.DS_Store
+client/build
+server/uploads
+.git

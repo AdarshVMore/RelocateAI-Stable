@@ -1,25 +1,32 @@
-import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+// Import the functions you need from the SDKs you need
+import { initializeApp ,  getApps, getApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup
+} from "firebase/auth";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Firebase configuration (Replace with your own Firebase config)
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyA85P1FiA7WOmgG2JfiEyiVZKEc9syyyUA",
-  authDomain: "codebits3.firebaseapp.com",
-  projectId: "codebits3",
-  storageBucket: "codebits3.firebasestorage.app",
-  messagingSenderId: "672036625542",
-  appId: "1:672036625542:web:b776201d4d066a7884c507",
-  measurementId: "G-TVMXKZND24"
+  apiKey: "AIzaSyAx8ruxJCIBgI8ODeKn2nks3hkgXP2bhB0",
+  authDomain: "vaanshika-6a813.firebaseapp.com",
+  projectId: "vaanshika-6a813",
+  storageBucket: "vaanshika-6a813.firebasestorage.app",
+  messagingSenderId: "80715735047",
+  appId: "1:80715735047:web:84e644cef2e335d5ae0aa2",
+  measurementId: "G-8P7GJN4MR5"
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = getApps().length
+  ? getApp()
+  : initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// Configure Google provider
-provider.setCustomParameters({
-  prompt: 'select_account'
-});
-
-export { auth, provider, signInWithPopup }; 
+export { auth, provider, signInWithPopup };
